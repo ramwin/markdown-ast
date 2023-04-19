@@ -1,0 +1,17 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "markdown_ast"
+version = "0.0.1"
+authors = [
+    { name="Xiang Wang", email="ramwin@qq.com" },
+]
+description = "parse markdown as abstract syntax tree"
+readme = "README.md"
+requires-python = " >=3.8"
+
+[project.urls]
+"Homepage" = "https://github.com/ramwin/markdown-ast"
+"Bug Tracker" = "https://github.com/ramwin/markdown-ast/issues"

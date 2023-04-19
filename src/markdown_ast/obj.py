@@ -9,8 +9,12 @@ parse markdown text to markdown object
 
 from dataclasses import dataclass, field
 from enum import Enum
+import logging
 import re
 from typing import List
+
+
+LOGGER = logging.getLogger(__name__)
 
 
 class ContentType(Enum):
@@ -62,7 +66,9 @@ class PlainText(BaseObject):
 
     @classmethod
     def is_token(cls, text, next_char) -> bool:
-        raise Exception("You should Never use PlainText to parse")
+        if re.match(r"\w+$", text):
+            return True
+        return False
 
     @staticmethod
     def consume(text: str) -> (BaseObject, str):
@@ -91,13 +97,15 @@ class Header(BaseObject):
 
     @classmethod
     def consume(cls, text) -> ("Header", str):
+        LOGGER.debug("Header consume")
         header, text = text.split(" ", 1)
         content, text = text.split("\n", 1)
         level = len(header)
+        LOGGER.debug("remain: %s", text)
         return Header(
             content_type=ContentType[f"header{level}"],
             content=content,
-            raw="#" * level + " " + content
+            raw="#" * level + " " + content + "\n",
         ), text
 
     @staticmethod
@@ -152,15 +160,16 @@ PARSER = [
 def parse(text: str) -> [BaseObject]:
     results = []
     if text and text[-1] != "\n":
-        text[-1] = "\n"
+        text += "\n"
     un_parsed_text = ""
-    while True:
+    while text:
         un_parsed_text += text[0]
         text = text[1:]
         next_char = text[0]
+        LOGGER.debug("try every parser_class to parse: %s.", un_parsed_text)
         for parser_class in PARSER:
             if parser_class.is_token(un_parsed_text, next_char):
-                base_object, text = parser_class.consume(text)
+                base_object, text = parser_class.consume(un_parsed_text + text)
                 results.append(base_object)
                 un_parsed_text = ""
                 break
